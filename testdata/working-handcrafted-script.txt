@@ -1,0 +1,289 @@
+REM Use to bootstrap raspberry pis headless.
+REM Waits for first boot, expands filesystem through raspi-config,
+REM then reboots. On next boot will forward ssh through other server and
+REM add a known key it will connect with.
+DELAY 30000
+DELAY 10000
+REM Do filesystem expansion
+ENTER
+DELAY 15000
+REM Accept that it will be booted into on next reboot
+ENTER
+DELAY 2000
+REM Click right two times to exit raspi-config
+RIGHTARROW
+DELAY 300
+RIGHTARROW
+DELAY 300
+REM Click on finish
+ENTER
+DELAY 2000
+REM Drop back to shell
+RIGHTARROW
+DELAY 300
+ENTER
+DELAY 4000
+STRING sudo -i
+ENTER
+DELAY 1000
+STRING cat > /etc/init.d/ssh-tunnel <<"EOF"
+ENTER
+STRING #!/bin/sh
+ENTER
+ENTER
+STRING ### BEGIN INIT INFO
+ENTER
+STRING # Provides:         ssh-tunnel
+ENTER
+STRING # Required-Start:   $remote_fs $syslog
+ENTER
+STRING # Required-Stop:    $remote_fs $syslog
+ENTER
+STRING # Default-Start:    2 3 4 5
+ENTER
+STRING # Default-Stop:
+ENTER
+STRING # Short-Description:    SSH tunnel installed by bootstrap rubber-ducky script
+ENTER
+STRING ### END INIT INFO
+ENTER
+ENTER
+STRING NAME=ssh-tunnel
+ENTER
+STRING DAEMON=/usr/bin/ssh
+ENTER
+STRING DAEMON_ARGS="sshuser@example.com \
+ENTER
+STRING     -i /home/pi/.ssh/id_rsa \
+ENTER
+STRING     -N \
+ENTER
+STRING     -R 127.0.0.1:2223:127.0.0.1:22 \
+ENTER
+STRING     -o BatchMode=yes"
+ENTER
+STRING DESC="SSH tunnel"
+ENTER
+STRING PIDFILE=/var/run/$NAME.pid
+ENTER
+ENTER
+STRING . /lib/lsb/init-functions
+ENTER
+ENTER
+STRING do_start() {
+ENTER
+STRING     start-stop-daemon --status --quiet --pidfile $PIDFILE
+ENTER
+STRING     status=$?
+ENTER
+STRING     case "$status" in
+ENTER
+STRING         0)
+ENTER
+STRING             log_action_msg "$DESC already running."
+ENTER
+STRING             return 1
+ENTER
+STRING             ;;
+ENTER
+STRING         1)
+ENTER
+STRING             log_warning_msg "$DESC is not running, but pidfile exists. Will try to start."
+ENTER
+STRING             ;;
+ENTER
+STRING         # 3 means not running, just start as normal
+ENTER
+STRING         4)
+ENTER
+STRING             log_warning_msg "Could not determine status of $DESC, will try to start."
+ENTER
+STRING             ;;
+ENTER
+STRING     esac
+ENTER
+STRING     log_daemon_msg "Starting $DESC" $NAME
+ENTER
+STRING     start-stop-daemon --start --quiet --background --pidfile $PIDFILE \
+ENTER
+STRING         --make-pidfile --exec $DAEMON -- $DAEMON_ARGS
+ENTER
+STRING     retval=$?
+ENTER
+STRING     log_end_msg $retval
+ENTER
+STRING     return $retval
+ENTER
+STRING }
+ENTER
+ENTER
+STRING do_stop() {
+ENTER
+STRING     start-stop-daemon --status --quiet --pidfile $PIDFILE
+ENTER
+STRING     status=$?
+ENTER
+STRING     case "$status" in
+ENTER
+STRING         # 0 means running, continue shutdown as normal
+ENTER
+STRING         1)
+ENTER
+STRING             log_warning_msg "$DESC is already stopped, but pidfile still exists."
+ENTER
+STRING             return 1
+ENTER
+STRING             ;;
+ENTER
+STRING         3)
+ENTER
+STRING             log_action_msg "$DESC already stopped."
+ENTER
+STRING             return 1
+ENTER
+STRING             ;;
+ENTER
+STRING         4)
+ENTER
+STRING             log_warning_msg "Could not determine status of $DESC, will try to stop."
+ENTER
+STRING             ;;
+ENTER
+STRING     esac
+ENTER
+STRING     log_daemon_msg "Stopping $DESC" $NAME
+ENTER
+STRING     start-stop-daemon --stop --quiet --retry TERM/30/KILL/5 \
+ENTER
+STRING         --pidfile $PIDFILE --remove-pidfile
+ENTER
+STRING     retval=$?
+ENTER
+STRING     log_end_msg $retval
+ENTER
+STRING     return $retval
+ENTER
+STRING }
+ENTER
+ENTER
+STRING do_restart() {
+ENTER
+STRING     log_action_msg "Restarting $DESC" "$NAME"
+ENTER
+STRING     do_stop
+ENTER
+STRING     case "$?" in
+ENTER
+STRING         0|1) do_start ;;
+ENTER
+STRING     esac
+ENTER
+STRING }
+ENTER
+ENTER
+STRING case "$1" in
+ENTER
+STRING     start)
+ENTER
+STRING         do_start
+ENTER
+STRING         ;;
+ENTER
+STRING     stop)
+ENTER
+STRING         do_stop
+ENTER
+STRING         ;;
+ENTER
+STRING     restart|force-reload)
+ENTER
+STRING         do_restart
+ENTER
+STRING         ;;
+ENTER
+STRING     *)
+ENTER
+STRING         log_action_msg "Usage: /etc/init.d/ssh {start|stop|restart|force-reload}" || true
+ENTER
+STRING         exit 1
+ENTER
+STRING esac
+ENTER
+STRING EOF
+ENTER
+DELAY 500
+STRING chmod +x /etc/init.d/ssh-tunnel
+ENTER
+DELAY 300
+STRING cat > /etc/ssh/ssh_known_hosts <<"EOF"
+ENTER
+STRING example.com ssh-ed25519 AAAAC3<snip>Kip
+ENTER
+STRING example.com ssh-rsa AAAAB3<snip>YpF
+ENTER
+STRING EOF
+ENTER
+DELAY 500
+REM Exit sudo
+STRING exit
+ENTER
+DELAY 300
+ENTER
+STRING mkdir .ssh
+ENTER
+DELAY 200
+STRING chmod 700 .ssh
+ENTER
+DELAY 200
+STRING cat > .ssh/id_rsa <<"EOF"
+ENTER
+STRING -----BEGIN RSA PRIVATE KEY-----
+ENTER
+STRING MIICXgIBAAKBgQC/aD4BVy4tmVwPlvEyOaK0owscTM45ExobsAhFYj5VLFvUyHtx
+ENTER
+STRING u3sguTSXB7rAkf2kZVenAQU9IGEG16jU19aCMVKOncy5LoYTTvEFy6kqnf5XepfV
+ENTER
+STRING ETMX0V8SQLC78BV0J0qgPBArvmYsvShvoJ2mIZrk9GHCQK7FYoNqEsEeOwIDAQAB
+ENTER
+STRING AoGBAKMiBTa/Ruw2OPBQhWF5HeM20tFb5KdgUHAop+P6x4VwORQxioR0dYx+TQQr
+ENTER
+STRING 4k8eHj9u4DXF+OEQJ6HdTFebXYY/Bb/sz7zIX1ems2P7OwDyiILcW7bwG8Q4CmDN
+ENTER
+STRING GTNQkvqdfMg4M4CmtInkrez66HGlCorBHkZIbMrZ8uoBD18BAkEA6X6SiEJObEEh
+ENTER
+STRING xNVOpl11z3wS+Dgw0dXIrAL1FcijBoMhgFj/kH/dH/MbSXIpXtf9vRtjM+bxQ26z
+ENTER
+STRING XdqhEIAlQwJBANHbLQ7Lths880WQ7GP/rdn6gaU2agqgdf6AJwh35fm/vK/uAhrT
+ENTER
+STRING uz/UAnM8dp18H0Y6y9Yk/BPSf4thH006l6kCQCeMBI2HjXjQX0PTTQrocXe+8AeS
+ENTER
+STRING nNItf1uC9LfHz7TeqOHwMPjsbytmJYz/BPrHYnaRGPBFgT+GlGKlEPqWebkCQQDI
+ENTER
+STRING KQJQA3NdhYQPjUw7kQoUSABSQZVhL2174mXYiOu8i+n/78boKZ2HIsN3gGsuiM4X
+ENTER
+STRING oUr8pOgeS/9FRMyjT8iJAkEAye9r2d5aH+92wmJxV0mIkjS+hzUsGnWPvgYBFDv0
+ENTER
+STRING H5fXUFpH7Xxmu6g1RMGIKv3VY2QFjJHWwObgX57xDJDExw==
+ENTER
+STRING -----END RSA PRIVATE KEY-----
+ENTER
+STRING EOF
+ENTER
+DELAY 200
+STRING chmod 600 .ssh/id_rsa
+ENTER
+DELAY 200
+STRING cat > /tmp/bootstrap.sh <<"EOF"
+ENTER
+STRING update-rc.d ssh-tunnel defaults
+ENTER
+STRING wget https://github.com/githubuser.keys -O .ssh/authorized_keys
+ENTER
+STRING rm /tmp/bootstrap.sh
+ENTER
+STRING reboot
+ENTER
+STRING EOF
+ENTER
+STRING sudo bash /tmp/bootstrap.sh
+ENTER
