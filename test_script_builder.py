@@ -1,7 +1,4 @@
-import sys
-sys.path.insert(0, '..')
-
-from build_inject import build
+from bootstrap_raspberrypi import build
 
 def test_full_build():
     expected = open('testdata/working-handcrafted-script.txt').read()

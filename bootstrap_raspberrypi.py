@@ -27,9 +27,9 @@ def main():
         ' the final binary. Default: %(default)s')
     parser.add_argument('-e', '--encoder', default='encoder.jar', help='Path to the'
         ' encoder. Default: %(default)s')
-    
+
     args = parser.parse_args()
-    
+
     if not (args.ssh_user or args.github_user):
         parser.print_help()
         print('Error: Either --ssh-user or --github-user is required', file=sys.stderr)
@@ -60,7 +60,7 @@ def main():
 
 def build(github_user=None, ssh_target=None, ssh_target_pubkeys=None,
           ssh_key=None, ssh_user=None):
-    
+
     ssh_key_file = None
     if ssh_key is None:
         ssh_key_file = tempfile.NamedTemporaryFile(delete=False)
@@ -71,7 +71,7 @@ def build(github_user=None, ssh_target=None, ssh_target_pubkeys=None,
         subprocess.check_call(['ssh-keygen', '-y', '-f', ssh_key_file.name])
         print()
         ssh_key = ssh_key_file.name
-    
+
     yield 'REM Use to bootstrap raspberry pis headless.'
     yield 'REM Waits for first boot, expands filesystem through raspi-config,'
     yield 'REM then reboots. On next boot will forward ssh through other server and'
