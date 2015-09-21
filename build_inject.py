@@ -10,21 +10,21 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--github-user', help='The GitHub user whose keys will'
     ' be preloaded for the pi user. If absent authentication will have to use the '
-    ' default password "raspberry"')
+    ' default password "raspberry".')
     parser.add_argument('-u', '--ssh-user', help='The user to use for sshing to the'
     ' target. Github user will be specified if this is not given.')
     parser.add_argument('-t', '--ssh-target', help='', required=True)
     parser.add_argument('-p', '--ssh-target-pubkey', help='The SSH targets pubkey'
         ' can be specified for complete two-way trust. If absent, any key presented'
         ' will be accepted and enables a MiTM attack. This argument can be given'
-        ' several times', nargs='*', default=[])
+        ' several times. Make sure you quote the pubkeys correctly: -p "ssh-rsa <snip>"', nargs='*', default=[])
     parser.add_argument('-k', '--ssh-key', help='The SSH key to use for connecting'
         ' to the target. If not specified, a key will be created and the public part'
         ' echoed when creating the inject binary')
     parser.add_argument('-s', '--script-out', help="Don't encode the script, just"
         ' echo it to stdout', action='store_true')
     parser.add_argument('-o', '--output', default='inject.bin', help='Where to output'
-        ' the final binary.')
+        ' the final binary. Default: %(default)s')
     parser.add_argument('-e', '--encoder', default='encoder.jar', help='Path to the'
         ' encoder. Default: %(default)s')
     
