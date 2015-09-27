@@ -2,10 +2,10 @@
 
 ### BEGIN INIT INFO
 # Provides:         ssh-tunnel
-# Required-Start:   $remote_fs $syslog
-# Required-Stop:    $remote_fs $syslog
+# Required-Start:   $remote_fs $syslog $network
+# Required-Stop:    $remote_fs $syslog $network
 # Default-Start:    2 3 4 5
-# Default-Stop:
+# Default-Stop:     0 1 6
 # Short-Description:    SSH tunnel installed by bootstrap rubber-ducky script
 ### END INIT INFO
 
