@@ -25,6 +25,7 @@ PIDFILE=/var/run/$NAME.pid
 . /lib/lsb/init-functions
 
 do_start() {
+    sleep 10
     start-stop-daemon --status --quiet --pidfile $PIDFILE
     status=$?
     case "$status" in
