@@ -17,7 +17,7 @@ DAEMON_ARGS="{{ ssh_user }}@{{ ssh_target }} \
     -R 127.0.0.1:2223:127.0.0.1:22 \
     -o BatchMode=yes"{% if no_strict_checking -%} \
     -o StrictHostKeyChecking=no \
-    -o UserKnownHostsFile=/dev/null \
+    -o UserKnownHostsFile=/dev/null
     {%- endif -%}
 DESC="SSH tunnel"
 PIDFILE=/var/run/$NAME.pid
